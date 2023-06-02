@@ -1,0 +1,51 @@
+stages:
+  - update
+  - build
+  - release
+
+update:
+  stage: update
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+    - New-Item -ItemType Directory temp
+    - $href = ((Invoke-WebRequest -UseBasicParsing "https://download.uib.de/opsi4.2/stable/packages/windows/localboot/").Links | Where-Object { $_.href.StartsWith("opsi-configed") } | Where-Object { $_.href.EndsWith(".opsi") }).href
+    - $href -match '\d+\.\d+\.\d+\.\d+'
+    - $remoteVersion = $Matches.0
+    - '((Get-Content -Raw .\src\META-INF\MANIFEST.MF) -match "Implementation-Version: (\d+\.\d+\.\d+\.\d+)")'
+    - $localVersion = $Matches.1
+    - if($localVersion -eq $remoteVersion) { exit 0 }
+    - (Get-Content .\src\META-INF\MANIFEST.MF).Replace($localVersion, $remoteVersion) | Out-File .\src\META-INF\MANIFEST.MF
+    - Invoke-WebRequest -UseBasicParsing -OutFile ".\temp\opsi-configed.opsi" "https://download.uib.de/opsi4.2/stable/packages/windows/localboot/$($href)"
+    - '& "C:\Program Files\7-Zip\7z.exe" x -otemp .\temp\opsi-configed.opsi CLIENT_DATA.cpio.gz ; Remove-Item .\temp\opsi-configed.opsi'
+    - '& "C:\Program Files\7-Zip\7z.exe" x -otemp .\temp\CLIENT_DATA.cpio.gz ; Remove-Item .\temp\CLIENT_DATA.cpio.gz'
+    - '& "C:\Program Files\7-Zip\7z.exe" x -otemp .\temp\CLIENT_DATA.cpio files.configed\configed.jar ; Remove-Item .\temp\CLIENT_DATA.cpio'
+    - Copy-Item .\temp\files.configed\configed.jar .\upstream\files.configed\configed.jar
+    - Remove-Item -Recurse -Force .\temp\
+    - git config --global user.email "$env:CI_MAIL"
+    - git config --global user.name "GitLab CI"
+    - git add .\upstream\files.configed\configed.jar .\src\META-INF\MANIFEST.MF
+    - git remote get-url gitlab_origin ; If(!$?) { git remote add gitlab_origin $env:REPO_URL }
+    - 'git commit -m "chore: Dependency Auto-Update" ; If($?) { git push gitlab_origin HEAD:master } else { Exit 0 }'
+
+build:
+  stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+  script:
+    - javac --source-path .\src\ -cp ".\upstream\files.configed\commons-io.jar;.\upstream\files.configed\configed.jar;.\upstream\files.configed\itext-pdf.jar;.\upstream\files.configed\jsch.jar;.\upstream\files.configed\lz4.jar;.\upstream\files.configed\swingx.jar" -d .\out\ .\src\de\atppbg\opsi\configed\Main.java
+    - cp .\src\de\atppbg\opsi\configed\i18n.properties .\out\de\atppbg\opsi\configed\i18n.properties
+    - cd out ; jar cmf ..\upstream\files.configed\META-INF\MANIFEST.MF opsi-configed-atp.jar *
+  artifacts:
+    paths:
+      - out\opsi-configed-atp.jar
+
+release:
+  stage: release
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+  script:
+    - $artifactLocation = "C:\runner\artifacts\$(Get-Location | Split-Path -Parent | Split-Path -Leaf)\$(Get-Location | Split-Path -Leaf)\"
+    - Remove-Item $artifactLocation -Recurse -Force ; $global:LASTEXITCODE = 0
+    - New-Item -ItemType Directory $artifactLocation
+    - Copy-Item out\opsi-configed-atp.jar $artifactLocation

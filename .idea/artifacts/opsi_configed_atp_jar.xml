@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact build-on-make="true" name="opsi-configed-atp:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/opsi_configed_atp_jar</output-path>
+    <root id="root">
+      <element id="archive" name="opsi-configed-atp.jar">
+        <element id="directory" name="META-INF">
+          <element id="file-copy" path="$PROJECT_DIR$/upstream/files.configed/META-INF/MANIFEST.MF" />
+        </element>
+        <element id="module-output" name="opsi-configed-atp" />
+      </element>
+    </root>
+  </artifact>
+</component>

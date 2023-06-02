@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Main-Class: de.atppbg.opsi.configed.Main
+Class-Path: commons-io.jar configed.jar itext-pdf.jar jsch.jar lz4.jar s
+ wingx.jar
+

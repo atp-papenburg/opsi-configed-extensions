@@ -1,0 +1,4 @@
+out/
+upstream/files.configed/*
+!upstream/files.configed/*.jar
+!upstream/files.configed/META-INF/

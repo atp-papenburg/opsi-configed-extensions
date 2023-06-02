@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="files">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/upstream/files.configed/commons-io.jar!/" />
+      <root url="jar://$PROJECT_DIR$/upstream/files.configed/configed.jar!/" />
+      <root url="jar://$PROJECT_DIR$/upstream/files.configed/itext-pdf.jar!/" />
+      <root url="jar://$PROJECT_DIR$/upstream/files.configed/jsch.jar!/" />
+      <root url="jar://$PROJECT_DIR$/upstream/files.configed/lz4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/upstream/files.configed/swingx.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
